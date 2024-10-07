@@ -13,9 +13,12 @@ if [[ -e /usr/share/zsh/manjaro-zsh-prompt ]]; then
   source /usr/share/zsh/manjaro-zsh-prompt
 fi
 
-# greet + shell enhancements/modifications
+# greet + sync pacman packages (once a day)
 
-figlet Hello $(whoami) !
+source ~/dotfiles/once_per_day.sh
+
+run_once_per_day "figlet Hello $(whoami) !"
+run_once_per_day "sudo pacman -Syu"
 
 eval "$(fzf --zsh)"
 
