@@ -12,3 +12,5 @@ if [ -z "$1" ]; then
 else
   python3 /home/praneet/workspace/code/ai/Fooocus/entry_with_update.py --$1
 fi
+
+bye

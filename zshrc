@@ -54,17 +54,19 @@ alias vi='vim'
 alias nano='vim'
 alias editor='vim'
 alias peds='source /home/praneet/workspace/code/python/venv/data-science/bin/activate' #python environment data-science (peds)
-
+alias cat=bat
+alias bye=namaste.sh
+alias startkde=startplasma-x11
 
 # env variable updates
-
+export PATH=$PATH:~/dotfiles/
 export PATH=$PATH:/home/praneet/Android/Sdk/platform-tools
 
 # tools
 
 # fooocus
-alias fooocus=~/dotfiles/fooocus.sh
-alias fooocus-server=~/dotfiles/fooocus.sh --listen
+alias fooocus='~/dotfiles/fooocus.sh'
+alias fooocus-server='~/dotfiles/fooocus.sh listen'
 
 # micromamba --------
 # To activate this environment, use:
