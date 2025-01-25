@@ -45,6 +45,22 @@ pe_function() {
     done
 }
 
+ssh-start() {
+    # Generate a random port between 1024 and 49151
+    local port=$((RANDOM % (49151 - 1024 + 1) + 1024))
+
+    # Check if the port is already in use and regenerate if necessary
+    while sudo lsof -iTCP:$port -sTCP:LISTEN > /dev/null 2>&1; do
+        port=$((RANDOM % (49151 - 1024 + 1) + 1024))
+    done
+
+    echo "Starting SSH server on random port $port..."
+
+    # Start the SSH server with the dynamically selected port
+    sudo ~/dotfiles/manage_ssh_server.sh --port "$port" --start
+}
+
+
 # Create alias 'pe' to call the function
 alias pe="pe_function"
 
@@ -57,6 +73,7 @@ alias peds='source /home/praneet/workspace/code/python/venv/data-science/bin/act
 alias cat=bat
 alias bye=namaste.sh
 alias startkde=startplasma-x11
+alias notebook='peds && cd ~/workspace/code/python/notebooks && jupyter notebook'
 
 # env variable updates
 export PATH=$PATH:~/dotfiles/
