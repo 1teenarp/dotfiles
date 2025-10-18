@@ -118,7 +118,19 @@ fi
 
 # --- MONITORING TOOLS ---
 echo "📊 Installing monitoring tools..."
-sudo apt install -y htop btop nvtop iftop iotop glances s-tui || true
+sudo apt update -y
+
+ARCH=$(uname -m)
+
+# Always safe to install these
+sudo apt install -y btop glances || true
+
+# Conditionally install GPU/UI tools if supported
+if [[ "$ARCH" != "aarch64" && "$ARCH" != "arm64" ]]; then
+  sudo apt install -y nvtop s-tui || echo "⚠️ Skipping nvtop/s-tui (not available on $ARCH)"
+else
+  echo "⚠️ Skipping nvtop/s-tui (unsupported on ARM architecture)"
+fi
 
 # --- TMUX INSTALLATION ---
 if ! command_exists tmux; then
