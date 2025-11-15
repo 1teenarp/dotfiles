@@ -117,6 +117,17 @@ EOF
 fi
 
 # --- MONITORING TOOLS ---
+
+# --- BAT INSTALLATION ---
+if ! command_exists bat; then
+  echo "📦 Installing bat..."
+  sudo apt update -y
+  sudo apt install -y bat
+else
+  echo "✅ bat already installed."
+fi
+
+
 echo "📊 Installing monitoring tools..."
 sudo apt update -y
 
