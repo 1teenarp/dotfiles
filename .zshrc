@@ -4,14 +4,14 @@
 [ -f ~/.exports ] && source ~/.exports
 [ -f ~/.aliases ] && source ~/.aliases
 
-# Add local bin to PATH
-
+# pyenv initialization
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
 
-export PATH="$HOME/.local/bin:$PATH"
+# Add local bin to PATH
+export PATH="$HOME/.local/bin:$HOME/Workspace/github/llama.cpp/build/bin/:$PATH"
 
 # Poetry, pyenv, etc.
 #if command -v pyenv &>/dev/null; then
