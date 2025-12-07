@@ -5,6 +5,12 @@
 [ -f ~/.aliases ] && source ~/.aliases
 
 # Add local bin to PATH
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+
 export PATH="$HOME/.local/bin:$PATH"
 
 # Poetry, pyenv, etc.
