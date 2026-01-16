@@ -1,9 +1,7 @@
-alias lcpp-serve-gpt-oss="tmux new-session -d -s llama.cpp-gpt-120b 'llama-server -hf ggml-org/gpt-oss-120b-GGUF --ctx-size 0 --jinja -ub 2048 --host 0.0.0.0 --port 8192 -b 2048 -fa on --temp 1.0 --reasoning-format auto -ngl 99'"
-alias lcpp-serve-gpt-oss-20b='tmux new-session -d -s llama.cpp-gpt-20b "llama-server -hf ggml-org/gpt-oss-20b-GGUF --ctx-size 0 --jinja -ub 2048 --host 0.0.0.0 --port 8193 -b 2048"'
-alias lcpp-serve-kimi-vl='tmux new-session -d -s llama.cpp-kimi-vl "llama-server -hf ggml-org/Kimi-VL-A3B-Thinking-2506-GGUF --ctx-size 0 --jinja -ub 2048 --host 0.0.0.0 --port 8194 -b 2048"'
-alias lcpp-serve-phi-4r='tmux new-session -d -s llama.cpp-phi-4r "llama-server -hf unsloth/Phi-4-reasoning-GGUF --ctx-size 0 --jinja -ub 2048 --host 0.0.0.0 --port 8195 -b 2048"'
-alias lcpp-serve-dsr1d-l-70='tmux new-session -d -s llama.cpp-dsr1d-l-70b "llama-server -hf unsloth/DeepSeek-R1-Distill-Llama-70B-GGUFi --ctx-size 0 --jinja -ub 2048 --host 0.0.0.0 --port 8196 -b 2048"'
-alias lcpp-serve-qwen3-omni='tmux new-session -d -s llama.cpp-qwen3-omni "llama-server -hf ggml-org/Qwen2.5-Omni-3B-GGUF:Q8_0 --ctx-size 0 --jinja -ub 2048 --host 0.0.0.0 --port 8197 -b 2048"'
-alias lcpp-serve-qwq32b='tmux new-session -d -s llama.cpp-qwq32b "llama-server -hf Qwen/QwQ-32B-GGUF --ctx-size 0 --jinja -ub 2048 --host 0.0.0.0 --port 8197 -b 2048"'
-alias lcpp-serve-qwen3vl='tmux new-session -d -s llama.cpp-qwen3vl "llama-server -hf Qwen/Qwen3-VL-8B-Instruct-GGUF --ctx-size 0 --jinja -ub 2048 --host 0.0.0.0 --port 8197 -b 2048"'
-alias uv-serve-kokoro='tmux new-session -d -s uvicorn.tts.kokorotts "source ~/Workspace/scratch/python/hf/.venv/bin/activate; cd ~/Workspace/scratch/python/hf/tts_server/; uvicorn app:app --host 0.0.0.0 --port 8199"'
+
+alias cat=bat
+alias ai=~/rough/console.sh
+
+img_server()
+  ~/Workspace/env/server/.venv/bin/python $DOTFILES_DIR/run/flask_img_viewer.py "$@"
+

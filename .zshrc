@@ -11,7 +11,12 @@ eval "$(pyenv init -)"
 
 
 # Add local bin to PATH
-export PATH="$HOME/.local/bin:$HOME/Workspace/github/llama.cpp/build/bin/:$PATH"
+export PATH="/usr/local/cuda-13.0/bin/:$HOME/.local/bin:$HOME/Workspace/github/llama.cpp/build/bin/:$PATH"
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
 
 # Poetry, pyenv, etc.
 #if command -v pyenv &>/dev/null; then
@@ -53,3 +58,4 @@ setopt hist_ignore_dups
 HISTFILE=~/.zsh_history
 SAVEHIST=10000
 
+export BAT_THEME='ansi'
