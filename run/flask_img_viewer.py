@@ -204,10 +204,11 @@ if __name__ == '__main__':
     parser.add_argument("path", help="Absolute path to images")
     parser.add_argument("delete_flag", type=int, choices=[0, 1])
     parser.add_argument("-p","--port", help="Port for the image app")
+    parser.add_argument("-h","--host", help="Host for the image app")
     args = parser.parse_args()
     
     global IMAGE_DIR, ALLOW_DELETE
     IMAGE_DIR = os.path.abspath(args.path)
     ALLOW_DELETE = bool(args.delete_flag)
     
-    app.run(host='0.0.0.0', port=args.port or 7000)
+    app.run(host=args.host or '0.0.0.0', port=args.port or 7000)

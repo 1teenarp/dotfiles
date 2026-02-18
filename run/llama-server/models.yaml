@@ -1,0 +1,144 @@
+models:
+  gpt-oss-120b:
+    type: LLAMA
+    repo: ggml-org/gpt-oss-120b-GGUF
+    port: 8192
+    flags: --temp 1.0 --reasoning-format auto -ngl 999 -fa 1 -ub 1024
+  gpt-oss-20b:
+    type: LLAMA
+    repo: ggml-org/gpt-oss-20b-GGUF
+    port: 8192
+    flags: -fa on
+  kimi-vl:
+    type: LLAMA
+    repo: ggml-org/Kimi-VL-A3B-Thinking-2506-GGUF
+    port: 8194
+    flags: ''
+  phi-4r:
+    type: LLAMA
+    repo: unsloth/Phi-4-reasoning-GGUF
+    port: 8195
+    flags: ''
+  dsr1d-l-70b:
+    type: LLAMA
+    repo: unsloth/DeepSeek-R1-Distill-Llama-70B-GGUF
+    port: 8196
+    flags: ''
+  qwen3-omni:
+    type: LLAMA
+    repo: ggml-org/Qwen2.5-Omni-3B-GGUF:Q8_0
+    port: 8197
+    flags: ''
+  qwq32b:
+    type: LLAMA
+    repo: Qwen/QwQ-32B-GGUF
+    port: 8198
+    flags: ''
+  glm-4.5-air:
+    type: LLAMA
+    repo: unsloth/GLM-4.5-Air-GGUF:Q4_K_M
+    port: 8206
+    flags: -fa on --temp 1.0 --reasoning-format auto -ngl 99 --min-p 0.1
+  gemma-3-27b:
+    type: LLAMA
+    repo: unsloth/gemma-3-27b-it-GGUF:Q6_K
+    port: 8200
+    flags: -fa on --temp 1.0 --reasoning-format auto -ngl 99 --min-p 0.1
+  qwen3-coder:
+    type: LLAMA
+    repo: unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q8_K_XL
+    port: 8201
+    flags: -fa on --temp 1.0 --reasoning-format auto -ngl 99 --min-p 0.1
+  qwen3-30b:
+    type: LLAMA
+    repo: Qwen/Qwen3-30B-A3B-GGUF:Q8_0
+    port: 8202
+    flags: -fa on --temp 1.0 --reasoning-format auto -ngl 99 --min-p 0.1
+  llama-3.3-70b:
+    type: LLAMA
+    repo: unsloth/Llama-3.3-70B-Instruct-GGUF:Q6_K_XL
+    port: 8203
+    flags: -fa on --temp 1.0 --reasoning-format auto -ngl 99 --min-p 0.1
+  nemo-30b:
+    type: LLAMA
+    repo: unsloth/Nemotron-3-Nano-30B-A3B-GGUF:Q4_K_M
+    port: 8204
+    flags: -fa on --temp 1.0 --reasoning-format auto -ngl 99 --min-p 0.1
+  qwen3-vl:
+    type: LLAMA
+    repo: Qwen/Qwen3-VL-8B-Instruct-GGUF
+    port: 8205
+    flags: ''
+  kokoro-tts:
+    type: CUSTOM
+    repo: source ~/Workspace/scratch/python/hf/.venv/bin/activate; cd ~/Workspace/scratch/python/hf/tts_server/;
+      uvicorn app:app
+    port: 8199
+    flags: ''
+  embd-gemma:
+    type: LLAMA
+    repo: --embd-gemma-default
+    port: 8021
+    flags: ''
+  fim-qwen:
+    type: LLAMA
+    repo: --fim-qwen-7b-default
+    port: 8022
+    flags: ''
+  vision-gemma:
+    type: LLAM
+    repo: --vision-gemma-4b-default
+    port: 8024
+    flags: ''
+  stt-whisper:
+    type: WHISPER
+    repo: models/ggml-large-v3-turbo-q8_0.bin
+    port: 8025
+    flags: ''
+  nemotron-30b:
+    type: LLAMA
+    repo: unsloth/Nemotron-3-Nano-30B-A3B-GGUF:Q8_K_XL
+    port: 30000
+    flags: --n-gpu-layers 99 --ctx-size 0 --threads 8
+  glm47:
+    type: LLAMA
+    repo: unsloth/GLM-4.7-GGUF:TQ1_0
+    port: 30005
+    flags: -fa on --n-gpu-layers 99 --threads 8 --ctx-size 32000
+  glm47v-flash:
+    type: LLAMA
+    repo: unsloth/GLM-4.7-Flash-GGUF:Q8_K_XL
+    port: 30001
+    flags: --n-gpu-layers 99 --threads 8
+  glm46v-flash-q6:
+    type: LLAMA
+    repo: unsloth/GLM-4.6V-Flash-GGUF:Q6_K
+    port: 30004
+    flags: --n-gpu-layers 99 --threads 8 --min-p 0.1
+  qwen3-coder-next:
+    type: LLAMA
+    repo: unsloth/Qwen3-Coder-Next-GGUF:Q6_K_XL
+    port: 30002
+    flags: --reasoning-format auto --temp 0.8 --top-p 0.95 --min-p 0.01 --top-k 40
+      --presence-penalty 1.10 --dry-multiplier 0.5 --dry-allowed-length 5 --frequency_penalty
+      0.5 --threads 64 --threads-batch 64 --n-gpu-layers 999 --batch-size 2048 --ubatch-size
+      512 --parallel 1 --host 0.0.0.0 --port 30002 --ctx-size 0 --jinja --flash-attn
+      on --context-shift
+  step-flash:
+    type: LLAMA
+    repo: ggml-org/Step-3.5-Flash-GGUF
+    port: 30003
+  qwen2-audio:
+    type: LLAMA
+    repo: NexaAI/Qwen2-Audio-7B-GGUF:Q8_0
+    port: 30005
+  gemma-3-1b-it:
+    type: LLAMA
+    repo: ggml-org/gemma-3-1b-it-GGUF:F16
+    port: 30006
+    flags: -fa on
+  MiniMax-M2.5:
+    type: LLAMA
+    repo: unsloth/MiniMax-M2.5-GGUF:Q3_K_XL
+    port: 30007
+    flags: -fa on --ctx-size 48000 -t 20 -ngl 999
