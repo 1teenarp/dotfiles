@@ -51,6 +51,7 @@ def index():
     <html>
     <head>
         <meta http-equiv="refresh" content="30">
+        <link rel="icon" type="image/png" sizes="32x32" href="https://zelda.nintendo.com/assets/icons/favicon-32x32.png">
         <title>Model Hub v2</title>
         <style>
             body { background:#0d1117; color:#c9d1d9; font-family:-apple-system, sans-serif;
