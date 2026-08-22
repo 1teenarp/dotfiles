@@ -147,16 +147,33 @@ git_email="$(git config --global user.email || true)"
 
 if [ -z "$git_name" ] || [ -z "$git_email" ]; then
   say "Git identity not set. Configuring $GIT_LOCAL..."
-  read -rp "Enter your Git username: " git_name
-  read -rsp "Enter your Git email: " git_email
-  echo ""
-  cat > "$GIT_LOCAL" <<EOF
+  say "Note: this is your commit NAME and EMAIL — not a password. Leave blank to skip."
+  read -rp "Git username (Enter to skip): " git_name
+  read -rp "Git email (Enter to skip): " git_email
+  if [ -n "$git_name" ] && [ -n "$git_email" ]; then
+    cat > "$GIT_LOCAL" <<EOF
 [user]
 	name = $git_name
 	email = $git_email
 EOF
+  else
+    warn "Git identity left blank — edit ~/.gitconfig.local later if needed."
+  fi
+fi
+
+# --------------------------------------------------------------------------
+# GitHub auth via browser device flow (link + one-time code) — no typing secrets
+# --------------------------------------------------------------------------
+if ! command -v gh >/dev/null 2>&1; then
+  say "Installing GitHub CLI (gh) for browser-based auth..."
+  install_pkgs gh || warn "Could not install gh. Install it and run 'gh auth login'."
+fi
+if command -v gh >/dev/null 2>&1 && ! gh auth status >/dev/null 2>&1; then
+  say "Authenticate to GitHub — a one-time code and a link (github.com/login/device) will be shown."
+  say "Open the link in your browser and enter the code. (Ctrl-C to skip.)"
+  gh auth login --web || true
 else
-  warn "Git identity already set (name=$git_name, email=$git_email)."
+  warn "GitHub CLI already authenticated (or not available)."
 fi
 
 # --------------------------------------------------------------------------
