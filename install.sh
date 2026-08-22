@@ -64,7 +64,8 @@ fi
 
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 install_zsh_plugin() {
-  local name="$1" url="$2" dir="$ZSH_CUSTOM/plugins/$name"
+  local name="$1" url="$2"
+  local dir="$ZSH_CUSTOM/plugins/$name"
   if [ ! -d "$dir" ]; then
     say "Installing zsh plugin: $name"
     git clone --depth 1 "$url" "$dir"
@@ -97,6 +98,29 @@ fi
 # --------------------------------------------------------------------------
 # Stow symlinks
 # --------------------------------------------------------------------------
+# Back up any existing real files (not symlinks) that stow would replace, so
+# the installer is safe and idempotent on machines with pre-existing configs.
+BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
+
+backup_conflicts() {
+  local pkg file target
+  shopt -s dotglob nullglob
+  for pkg in "$@"; do
+    for file in "$REPO_DIR/$pkg"/*; do
+      target="$HOME/$(basename "$file")"
+      if [ -L "$target" ]; then
+        continue                    # already a stow-managed symlink
+      elif [ -e "$target" ]; then
+        mkdir -p "$BACKUP_DIR"
+        say "Backing up existing $target -> $BACKUP_DIR/"
+        mv "$target" "$BACKUP_DIR/"
+      fi
+    done
+  done
+  shopt -u dotglob nullglob
+}
+
+backup_conflicts shell vim tmux git
 say "Linking dotfiles with GNU Stow..."
 stow -d "$REPO_DIR" -t "$STOW_TARGET" --verbose=2 shell vim tmux git
 
