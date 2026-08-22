@@ -1,21 +1,15 @@
-# If not running interactively, don't do anything (leave this at the top of this file)
+# ~/.bashrc
+# If not running interactively, don't do anything (leave this at the top)
 [[ $- != *i* ]] && return
 
-# All the default Omarchy aliases and functions
-# (don't mess with these directly, just overwrite them here!)
-source ~/.local/share/omarchy/default/bash/rc
-
-# Add your own exports, aliases, and functions here.
-#
-# Make an alias for invoking commands you use constantly
-# alias p='python'
-#
-#
+# Shared aliases & exports (portable)
+[ -f ~/.aliases ] && source ~/.aliases
+[ -f ~/.exports ] && source ~/.exports
+[ -f ~/.exports.local ] && source ~/.exports.local
 
 list() {
   fzf -m --preview '[[ $(file --mime {}) =~ binary ]] && echo {} is a binary file || bat --style=numbers --color=always {}' | xargs -r ls -lha
 }
-
 
 fshow() {
   git log --graph --color=always \
@@ -27,3 +21,6 @@ fshow() {
                 {}
 FZF-EOF"
 }
+
+# Machine-specific overrides (gitignored)
+[ -f ~/.bashrc.local ] && source ~/.bashrc.local

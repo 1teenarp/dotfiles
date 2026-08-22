@@ -1,7 +1,0 @@
-
-alias cat=bat
-alias ai=~/rough/console.sh
-
-img_server()
-  ~/Workspace/env/server/.venv/bin/python $DOTFILES_DIR/run/flask_img_viewer.py "$@"
-

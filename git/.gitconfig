@@ -1,0 +1,12 @@
+# Base git config (portable). Personal identity lives in ~/.gitconfig.local
+# which is created by install.sh and never committed.
+
+[init]
+	defaultBranch = main
+
+[core]
+	excludesfile = ~/.gitignore_global
+	editor = vim
+
+[include]
+	path = ~/.gitconfig.local

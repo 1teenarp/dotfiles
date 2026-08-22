@@ -1,0 +1,5 @@
+# Portable environment exports (shared by bash and zsh)
+# Machine-specific exports (PATH, DOTFILES_DIR, etc.) belong in ~/.exports.local
+
+export EDITOR=vim
+export VISUAL=vim
