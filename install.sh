@@ -1,174 +1,194 @@
 #!/usr/bin/env bash
+# Cross-machine dotfiles installer.
+# Uses GNU Stow to symlink packages into $HOME, detects the package manager,
+# and keeps all private/machine-specific data out of the repo.
 set -euo pipefail
 
-echo "🚀 Starting environment setup..."
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STOW_TARGET="$HOME"
 
-# --- Helper ---
-command_exists() { command -v "$1" >/dev/null 2>&1; }
+say()  { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
+warn() { printf '\033[1;33m==>\033[0m %s\n' "$*"; }
 
-# --- ZSH INSTALLATION ---
-if ! command_exists zsh; then
-  echo "📦 Installing Zsh and essentials..."
-  sudo apt update -y
-  sudo apt install -y zsh curl git fonts-powerline
-else
-  echo "✅ Zsh already installed."
+# --------------------------------------------------------------------------
+# Package manager detection
+# --------------------------------------------------------------------------
+detect_pm() {
+  for pm in apt pacman dnf zypper brew; do
+    if command -v "$pm" >/dev/null 2>&1; then
+      echo "$pm"
+      return 0
+    fi
+  done
+  echo "unknown"
+}
+
+install_pkgs() {
+  case "$PM" in
+    apt)    sudo apt update -y && sudo apt install -y "$@" ;;
+    pacman) sudo pacman -S --noconfirm --needed "$@" ;;
+    dnf)    sudo dnf install -y "$@" ;;
+    zypper) sudo zypper install -y "$@" ;;
+    brew)   brew install "$@" ;;
+    *)
+      warn "No supported package manager found. Install manually: $*"
+      return 1
+      ;;
+  esac
+}
+
+PM="$(detect_pm)"
+say "Detected package manager: $PM"
+
+# --------------------------------------------------------------------------
+# Core tools
+# --------------------------------------------------------------------------
+CORE=(stow git vim tmux bat)
+say "Installing core tools: ${CORE[*]}"
+install_pkgs "${CORE[@]}" || true
+
+# --------------------------------------------------------------------------
+# Oh My Zsh + plugins (guarded; requires zsh)
+# --------------------------------------------------------------------------
+if ! command -v zsh >/dev/null 2>&1; then
+  say "Installing zsh..."
+  install_pkgs zsh
 fi
 
-# --- OH MY ZSH INSTALLATION ---
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
-  echo "💡 Installing Oh My Zsh..."
+  say "Installing Oh My Zsh..."
   RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 else
-  echo "✅ Oh My Zsh already installed. Updating..."
-  git -C "$HOME/.oh-my-zsh" pull
+  warn "Oh My Zsh already installed (skipping update)."
 fi
 
-# --- PLUGINS ---
 ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+install_zsh_plugin() {
+  local name="$1" url="$2"
+  local dir="$ZSH_CUSTOM/plugins/$name"
+  if [ ! -d "$dir" ]; then
+    say "Installing zsh plugin: $name"
+    git clone --depth 1 "$url" "$dir"
+  else
+    warn "zsh plugin $name already installed."
+  fi
+}
+install_zsh_plugin zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions
+install_zsh_plugin zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting
 
-if [ ! -d "$ZSH_CUSTOM/plugins/zsh-autosuggestions" ]; then
-  echo "💬 Installing zsh-autosuggestions..."
-  git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+# --------------------------------------------------------------------------
+# fzf
+# --------------------------------------------------------------------------
+if [ ! -d "$HOME/.fzf" ]; then
+  say "Installing fzf..."
+  git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/.fzf"
+  "$HOME/.fzf/install" --all >/dev/null 2>&1 || true
 else
-  echo "✅ zsh-autosuggestions already installed. Updating..."
-  git -C "$ZSH_CUSTOM/plugins/zsh-autosuggestions" pull || true
+  warn "fzf already installed."
 fi
 
-if [ ! -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ]; then
-  echo "🎨 Installing zsh-syntax-highlighting..."
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
-else
-  echo "✅ zsh-syntax-highlighting already installed. Updating..."
-  git -C "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" pull || true
+# --------------------------------------------------------------------------
+# tmux plugin manager
+# --------------------------------------------------------------------------
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+  say "Installing tmux plugin manager (TPM)..."
+  git clone --depth 1 https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 fi
 
-# --- LINK DOTFILES ---
-echo "🔗 Linking dotfiles..."
-ln -sf ~/Workspace/github/dotfiles/.zshrc ~/.zshrc
-ln -sf ~/Workspace/github/dotfiles/.aliases ~/.aliases
-ln -sf ~/Workspace/github/dotfiles/.exports ~/.exports
-ln -sf ~/Workspace/github/dotfiles/.gitconfig ~/.gitconfig
-ln -sf ~/Workspace/github/dotfiles/.gitignore_global ~/.gitignore_global
+# --------------------------------------------------------------------------
+# Stow symlinks
+# --------------------------------------------------------------------------
+# Back up any existing real files (not symlinks) that stow would replace, so
+# the installer is safe and idempotent on machines with pre-existing configs.
+BACKUP_DIR="$HOME/.dotfiles-backup-$(date +%Y%m%d-%H%M%S)"
 
-# --- GIT CONFIGURATION ---
-echo "🔧 Checking Git global configuration..."
+backup_conflicts() {
+  local pkg file target
+  shopt -s dotglob nullglob
+  for pkg in "$@"; do
+    for file in "$REPO_DIR/$pkg"/*; do
+      target="$HOME/$(basename "$file")"
+      if [ -L "$target" ]; then
+        continue                    # already a stow-managed symlink
+      elif [ -e "$target" ]; then
+        mkdir -p "$BACKUP_DIR"
+        say "Backing up existing $target -> $BACKUP_DIR/"
+        mv "$target" "$BACKUP_DIR/"
+      fi
+    done
+  done
+  shopt -u dotglob nullglob
+}
 
+backup_conflicts shell vim tmux git
+say "Linking dotfiles with GNU Stow..."
+stow -d "$REPO_DIR" -t "$STOW_TARGET" --verbose=2 shell vim tmux git
+
+# --------------------------------------------------------------------------
+# Machine-specific exports (private, written to ~/.exports.local)
+# --------------------------------------------------------------------------
+EXPORTS_LOCAL="$HOME/.exports.local"
+if [ ! -f "$EXPORTS_LOCAL" ]; then
+  say "Writing machine-specific exports to $EXPORTS_LOCAL"
+  cat > "$EXPORTS_LOCAL" <<EOF
+# Machine-specific exports (not tracked in git)
+export DOTFILES_DIR="$REPO_DIR"
+EOF
+else
+  warn "$EXPORTS_LOCAL already exists; leaving as-is (set DOTFILES_DIR manually if needed)."
+fi
+
+# --------------------------------------------------------------------------
+# Git identity (private, written to ~/.gitconfig.local)
+# --------------------------------------------------------------------------
+GIT_LOCAL="$HOME/.gitconfig.local"
 git_name="$(git config --global user.name || true)"
 git_email="$(git config --global user.email || true)"
 
 if [ -z "$git_name" ] || [ -z "$git_email" ]; then
-  echo "🧩 Git global identity not set. Let's configure it."
-  
-  # Ask for username
-  read -rp "Enter your Git username: " git_name
-  # Ask for email securely (input hidden)
-  read -rsp "Enter your Git email: " git_email
-  echo ""
-  
-  git config --global user.name "$git_name"
-  git config --global user.email "$git_email"
-
-  echo "✅ Git configured as:"
-  echo "   Name:  $git_name"
-  echo "   Email: $git_email"
-else
-  echo "✅ Git already configured:"
-  echo "   Name:  $git_name"
-  echo "   Email: $git_email"
-fi
-
-# --- SET DEFAULT SHELL ---
-if [ "$SHELL" != "$(which zsh)" ]; then
-  echo "🔄 Changing default shell to zsh..."
-  chsh -s "$(which zsh)"
-else
-  echo "✅ Default shell already set to zsh."
-fi
-
-# --- FZF INSTALLATION ---
-if [ ! -d "$HOME/.fzf" ]; then
-  echo "🧭 Installing fzf..."
-  git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-  yes | ~/.fzf/install --no-bash --no-fish --key-bindings --completion --update-rc
-else
-  echo "✅ fzf already installed, updating..."
-  git -C ~/.fzf pull
-  yes | ~/.fzf/install --no-bash --no-fish --key-bindings --completion --update-rc
-fi
-
-# Ensure latest fzf binary takes precedence
-if ! grep -q 'export PATH="$HOME/.fzf/bin:$PATH"' "$HOME/.zshrc"; then
-  echo 'export PATH="$HOME/.fzf/bin:$PATH"' >> "$HOME/.zshrc"
-fi
-
-# Clean up deprecated fzf lines
-sed -i '/fzf --zsh/d' ~/.fzf.zsh || true
-
-# --- ENSURE .zshrc SOURCES FZF ---
-if ! grep -q '\[ -f ~/.fzf.zsh \] && source ~/.fzf.zsh' "$HOME/.zshrc"; then
-  echo "🧩 Adding fzf sourcing to ~/.zshrc"
-  cat <<'EOF' >> "$HOME/.zshrc"
-
-# --- fzf setup ---
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-# --- end fzf setup ---
+  say "Git identity not set. Configuring $GIT_LOCAL..."
+  say "Note: this is your commit NAME and EMAIL — not a password. Leave blank to skip."
+  read -rp "Git username (Enter to skip): " git_name
+  read -rp "Git email (Enter to skip): " git_email
+  if [ -n "$git_name" ] && [ -n "$git_email" ]; then
+    cat > "$GIT_LOCAL" <<EOF
+[user]
+	name = $git_name
+	email = $git_email
 EOF
+  else
+    warn "Git identity left blank — edit ~/.gitconfig.local later if needed."
+  fi
 fi
 
-# --- MONITORING TOOLS ---
-
-# --- BAT INSTALLATION ---
-if ! command_exists bat; then
-  echo "📦 Installing bat..."
-  sudo apt update -y
-  sudo apt install -y bat
+# --------------------------------------------------------------------------
+# GitHub auth via browser device flow (link + one-time code) — no typing secrets
+# --------------------------------------------------------------------------
+if ! command -v gh >/dev/null 2>&1; then
+  say "Installing GitHub CLI (gh) for browser-based auth..."
+  install_pkgs gh || warn "Could not install gh. Install it and run 'gh auth login'."
+fi
+if command -v gh >/dev/null 2>&1 && ! gh auth status >/dev/null 2>&1; then
+  say "Authenticate to GitHub — a one-time code and a link (github.com/login/device) will be shown."
+  say "Open the link in your browser and enter the code. (Ctrl-C to skip.)"
+  gh auth login --web || true
 else
-  echo "✅ bat already installed."
+  warn "GitHub CLI already authenticated (or not available)."
 fi
 
-
-echo "📊 Installing monitoring tools..."
-sudo apt update -y
-
-ARCH=$(uname -m)
-
-# Always safe to install these
-sudo apt install -y btop glances || true
-
-# Conditionally install GPU/UI tools if supported
-if [[ "$ARCH" != "aarch64" && "$ARCH" != "arm64" ]]; then
-  sudo apt install -y nvtop s-tui || echo "⚠️ Skipping nvtop/s-tui (not available on $ARCH)"
+# --------------------------------------------------------------------------
+# Default shell
+# --------------------------------------------------------------------------
+if [ "$SHELL" != "$(command -v zsh)" ]; then
+  say "Setting default shell to zsh..."
+  chsh -s "$(command -v zsh)"
 else
-  echo "⚠️ Skipping nvtop/s-tui (unsupported on ARM architecture)"
+  warn "Default shell is already zsh."
 fi
 
-# --- TMUX INSTALLATION ---
-if ! command_exists tmux; then
-  echo "🧱 Installing tmux..."
-  sudo apt install -y tmux
-else
-  echo "✅ tmux already installed."
-fi
-
-# Optional: install or update tmux plugin manager (TPM)
-if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
-  echo "🔌 Installing tmux plugin manager..."
-  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-else
-  echo "✅ tmux plugin manager already installed. Updating..."
-  git -C ~/.tmux/plugins/tpm pull || true
-fi
-
-# --- OPTIONAL: AUTO-START TMUX ---
-# Uncomment below to auto-start tmux session named "main"
-# if [ -z "$TMUX" ]; then
-#   tmux attach -t main || tmux new -s main
-# fi
-
-echo ""
-echo "🎉 All done!"
-echo "➡️  Restart your terminal or run: exec zsh"
-echo "✨ You can run 'btop', 'htop', 'nvtop', or 'tmux' to monitor your system anytime."
-
-
+# --------------------------------------------------------------------------
+# Done
+# --------------------------------------------------------------------------
+say "All done!"
+warn "Start tmux once and press prefix + I to install TPM plugins."
+warn "Restart your shell (exec zsh) for changes to take effect."

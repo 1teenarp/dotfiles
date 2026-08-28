@@ -1,0 +1,4 @@
+# Portable aliases & shell functions (shared by bash and zsh)
+# Machine-specific aliases belong in ~/.aliases.local or ~/.zshrc.local
+
+alias cat=bat

@@ -1,1 +1,4 @@
-.gitconfig
+# Private / machine-specific files (never committed)
+# Symlinked local overrides written by install.sh (e.g. .gitconfig.local,
+# .exports.local, .zshrc.local). These all end in .local.
+*.local

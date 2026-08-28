@@ -1,0 +1,17 @@
+# Global gitignore (applies to every repo via core.excludesfile)
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+*.swp
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# Build artifacts / caches
+__pycache__/
+*.pyc
+node_modules/
+.vscode-server/
