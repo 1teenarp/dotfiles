@@ -108,7 +108,13 @@ backup_conflicts() {
   for pkg in "$@"; do
     for file in "$REPO_DIR/$pkg"/*; do
       target="$HOME/$(basename "$file")"
-      if [ -L "$target" ]; then
+      if [ -L "$target" ] && [ ! -e "$target" ]; then
+        # Dangling symlink: target was moved or deleted (e.g. by a repo
+        # restructure). Stow cannot adopt these, so clear them out or it
+        # aborts with "existing target is not owned by stow".
+        warn "Removing dangling symlink $target -> $(readlink "$target")"
+        rm -f "$target"
+      elif [ -L "$target" ]; then
         continue                    # already a stow-managed symlink
       elif [ -e "$target" ]; then
         mkdir -p "$BACKUP_DIR"

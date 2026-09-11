@@ -29,6 +29,7 @@ fi
 setopt autocd
 setopt correct
 setopt hist_ignore_dups
+HISTSIZE=50000
 HISTFILE=~/.zsh_history
 SAVEHIST=10000
 
